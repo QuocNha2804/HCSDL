@@ -1,0 +1,119 @@
+--cau1
+CREATE DATABASE QLSV
+ON PRIMARY 
+(
+NAME = QLSV_data,
+FILENAME = 'T:\23636501_TranQuocNha.SQL\QLSV\QLSV_data.mdf',
+SIZE = 10MB,
+MAXSIZE = 40MB,
+FILEGROWTH = 1MB
+)
+LOG ON
+(
+NAME = QLSV_log,
+FILENAME = 'T:\23636501_TranQuocNha.SQL\QLSV\QLSV_log.ldf',
+SIZE = 10MB,
+MAXSIZE = 40MB,
+FILEGROWTH = 1MB
+)
+--
+USE QLSV
+---
+ALTER DATABASE QLSV
+MODIFY FILE(NAME = 'QLSV_data', size = 15)
+---
+ALTER DATABASE QLSV
+ADD FILE
+(
+NAME = QLSV_data1,
+FILENAME = 'T:\23636501_TranQuocNha.SQL\QLSV\QLSV_data1.ndf',
+SIZE =10 MB,
+MAXSIZE = 40MB,
+FILEGROWTH = 1MB
+)
+--
+ALTER DATABASE QLSV
+REMOVE FILE QLSV_data1
+--cau 2
+CREATE TABLE LOP
+(
+MaLop int not null PRIMARY KEY,
+TenLop NVARCHAR(30),
+MaKhoa NVARCHAR(30)
+)
+--
+CREATE TABLE SVIEN
+(
+Masv int not null PRIMARY KEY,
+Hosv NVARCHAR(30),
+Tensv NVARCHAR(30),
+GioiTinh NVARCHAR(30),
+NgaySinh DATETIME,
+MaLop int
+)
+--
+CREATE TABLE ChuyenCan
+(
+Masv int not null PRIMARY KEY,
+NgayNghi DATETIME,
+BuoiNghi int,
+LyDo NVARCHAR(30)
+)
+--
+ALTER TABLE ChuyenCan
+ALTER COLUMN BuoiNghi NVARCHAR(30)
+--
+CREATE TABLE Diem
+(
+Masv int not null PRIMARY KEY,
+DiemGK float,
+DiemCK float,
+DiemTK AS DiemGK*0.3 + DiemCK*0.7
+)
+ALTER TABLE SVIEN
+ADD CONSTRAINT SV_FK FOREIGN KEY (MaLop) REFERENCES LOP(MaLop)
+--
+ALTER TABLE ChuyenCan
+ADD CONSTRAINT CC_FK FOREIGN KEY (Masv) REFERENCES SVIEN(Masv)
+ON DELETE CASCADE
+ON UPDATE CASCADE
+--
+ALTER TABLE ChuyenCan
+ADD CONSTRAINT chk_buoinghi CHECK(BuoiNghi IN ('S', 'C', 'T'))
+--
+ALTER TABLE Diem
+ADD CONSTRAINT masv_FK FOREIGN KEY (Masv) REFERENCES SVIEN(Masv)
+ON DELETE CASCADE
+ON UPDATE CASCADE
+--
+INSERT INTO LOP( MaLop, TenLop, MaKhoa) VALUES
+(1,N'DHTH19A',N'TH01'),
+(2,N'DHTH19B',N'TH01')
+--
+INSERT INTO SVIEN (Masv, Hosv, Tensv, GioiTinh, NgaySinh, MaLop) VALUES
+(101, N'Tran', N'Quoc Nha', N'Nam',N'04/28/2005',1),
+(102, N'Do', N'Minh Quan', N'Nam', N'10/20/2005',1),
+(103, N'Nguyen', N'Minh Tan', N'Nam', N'3/8/2005',2),
+(104, N'Bui', N'Quoc Thong', N'Nam', N'9/15/2005',2),
+(105, N'Nguyen', N'Duy Quan', N'Nam', N'6/17/2005',2)
+--
+INSERT INTO ChuyenCan(Masv, NgayNghi, BuoiNghi, LyDo) VALUES
+(101, N'6/20/2024', N'S', N'Benh'),
+(102, N'7/21/2024', N'C', N'Cup'),
+(103, N'5/10/2024', N'T', N'Benh'),
+(104, N'6/13/2024', N'S', N'Benh'),
+(105, N'9/23/2024', N'C', N'Benh')
+--
+INSERT Diem(Masv, DiemGK, DiemCK) VALUES
+(101, 8.0, 7.0),
+(102, 6.0, 9.0),
+(103, 5.0, 8.0),
+(104, 9.0, 6.0),
+(105, 8.0, 8.0)
+--
+UPDATE ChuyenCan
+SET BuoiNghi= 'S'
+WHERE NgayNghi = GETDATE()
+--
+DELETE FROM ChuyenCan WHERE NgayNghi > N'8/31/2024' AND NgayNghi < N'10/1/2024'
+
